@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="poolMaximumActiveConnections"     value="10"/>
+                <property name="poolMaximumIdleConnections"       value="5"/>
+                <property name="poolMaximumCheckoutTime"          value="20000"/>  <!-- milliseconds -->
+                <property name="driver"                           value="org.postgresql.Driver"/>
+                <property name="url"                              value="jdbc:postgresql://127.0.0.1:5432/musicme"/>
+                <property name="username"                         value="kostas"/>
+                <property name="password"                         value="kostas"/>
+                <property name="defaultTransactionIsolationLevel" value="2"/>  <!-- 2 == TRANSACTION_READ_COMMITTED -->
+                <!-- set pg_stat_activity.application_name for this connection -->
+                <property name="driver.ApplicationName"           value="Test App"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <mappers>
+        <mapper resource="mybatis/test_app.xml"/>
+    </mappers>
+</configuration>
