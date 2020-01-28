@@ -2,6 +2,8 @@ package com.musicme.musicme.controller;
 
 import com.musicme.musicme.entities.*;
 import com.musicme.musicme.entities.UploadFileResponse;
+import com.musicme.musicme.exceptions.FileStorageException;
+import com.musicme.musicme.exceptions.ResourceNotFoundException;
 import com.musicme.musicme.repositories.UserRepository;
 import com.musicme.musicme.repositories.VideoRepository;
 import com.musicme.musicme.services.FileStorageService;
@@ -19,6 +21,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 
@@ -38,26 +43,32 @@ public class FileController {
 
     // On the assumption that to upload a video, you must be a user in our database
     @PostMapping("/uploadFile/{id}")
-    public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file, @PathVariable Long id, String caption) {
+    public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file, @PathVariable Long id, String caption) throws ResourceNotFoundException{
         // Changing file name to match {id}_{year}_{month}_{day}_{hour}_{minute}_{second} format
         String timestamp = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss").format(new Date());
         String oldFileName = file.getOriginalFilename();
         String[] parsedFileName = oldFileName.split("\\.");
         String newFileName = timestamp + "." + parsedFileName[parsedFileName.length - 1];
 
-        String fileName = fileStorageService.storeFile(file, id, newFileName);
+        //Making sure user exists
+        User user = userRepository.findById(id).orElse(null);
+        if(user != null) {
+            String fileName = fileStorageService.storeFile(file, id, newFileName);
 
-        String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/downloads/")
-                .path(fileName)
-                .toUriString();
+            String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/downloads/")
+                    .path(fileName)
+                    .toUriString();
 
-        User user = userRepository.findById(id).get();
-        VideoIdentity videoIdentity = new VideoIdentity(id, timestamp);
-        Video video = new Video(videoIdentity, user, "", caption, fileName);
-        videoController.saveOrUpdate(video);
-        return new UploadFileResponse(fileName, fileDownloadUri,
-                file.getContentType(), file.getSize());
+            VideoIdentity videoIdentity = new VideoIdentity(id, timestamp);
+            Video video = new Video(videoIdentity, user, "", caption, fileName);
+            videoController.saveOrUpdate(video);
+            return new UploadFileResponse(fileName, fileDownloadUri,
+                    file.getContentType(), file.getSize());
+        } else {
+            throw new  ResourceNotFoundException("User", "id", id);
+        }
+
     }
 
     @GetMapping("/downloadFile/{id}/{fileName:.+}")

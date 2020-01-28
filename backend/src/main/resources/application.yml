@@ -1,8 +1,7 @@
 ## File Storage Properties
 # All files uploaded through the REST API will be stored in this directory
 file:
-  upload-dir: /MusicMeVideos/
-
+  upload-dir: /Users/kostas/Desktop/MusicMeVideos/
 #DB info
 spring:
   servlet:
@@ -79,3 +78,5 @@ app:
       - http://localhost:3000/oauth2/redirect
       - myandroidapp://oauth2/redirect
       - myiosapp://oauth2/redirect
+server:
+  port: 1996
